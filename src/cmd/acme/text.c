@@ -533,6 +533,36 @@ textreadc(Text *t, uint q)
 }
 
 int
+textforwardwordwidth(Text *t)
+{
+	uint q, eq;
+	Rune r;
+	int skipping;
+
+	q = t->q0;
+	skipping = TRUE;
+
+	if(t->q0 >=  t->file->b.nc-1)
+		return 0;
+
+	while(q < t->file->b.nc-1){
+		r = textreadc(t, q+1);
+		if(r == '\n'){		/* eat at most one more character */
+			if(q == t->q0)	/* eat the newline */
+				++q;
+			break;
+		}
+		eq = !isspace(r);
+		if(eq && skipping)	/* found one; stop skipping */
+			skipping = FALSE;
+		else if(!eq && !skipping)
+			break;
+		++q;
+	}
+	return q - t->q0;
+}
+
+int
 textbswidth(Text *t, Rune c)
 {
 	uint q, eq;
@@ -725,6 +755,15 @@ texttype(Text *t, Rune r)
 		q0 = textbacknl(t, t->org, n);
 		textsetorigin(t, q0, TRUE);
 		return;
+	case 0x0e: /* ^N: back a word */
+		if(t->q0 == 0)
+			return;
+		typecommit(t);
+		nnb = textbswidth(t, r);
+		if(nnb <= 0)
+			return;
+		textsetselect(t, t->q0-nnb, t->q0-nnb);
+		return;
 	case Khome:
 		typecommit(t);
 		if(t->org > t->iq1) {
@@ -732,6 +771,13 @@ texttype(Text *t, Rune r)
 			textsetorigin(t, q0, TRUE);
 		} else
 			textshow(t, 0, 0, FALSE);
+		return;
+	case 0x0f: /* ^O: go forward a word */
+		typecommit(t);
+		nnb = textforwardwordwidth(t);
+		if(nnb <= 0)
+			return;
+		textsetselect(t, t->q0+nnb+1, t->q0+nnb+1);
 		return;
 	case Kend:
 		typecommit(t);
@@ -753,6 +799,10 @@ texttype(Text *t, Rune r)
 			nnb = textbswidth(t, 0x15);
 		textshow(t, t->q0-nnb, t->q0-nnb, TRUE);
 		return;
+	case 0x10:	/* ^P: save */
+	 	typecommit(t);
+		put(t, nil, nil, FALSE, 0, nil, 0);
+		return;
 	case 0x05:	/* ^E: end of line */
 		typecommit(t);
 		q0 = t->q0;
@@ -760,17 +810,21 @@ texttype(Text *t, Rune r)
 			q0++;
 		textshow(t, q0, q0, TRUE);
 		return;
-	case Kcmd+'c':	/* %C: copy */
+	case 0x13:	/* ^S: copy */
 		typecommit(t);
 		cut(t, t, nil, TRUE, FALSE, nil, 0);
 		return;
-	case Kcmd+'z':	/* %Z: undo */
+	case 0x0b:	/* ^K: undo */
 	 	typecommit(t);
 		undo(t, nil, nil, TRUE, 0, nil, 0);
 		return;
-	case Kcmd+'Z':	/* %-shift-Z: redo */
+	case 0x19:	/* ^Y redo */
 	 	typecommit(t);
 		undo(t, nil, nil, FALSE, 0, nil, 0);
+		return;
+	case 0x07: /* ^G: get */
+		typecommit(t);
+		get(t, nil, nil, FALSE, 0, nil, 0);
 		return;
 
 	Tagdown:
@@ -796,7 +850,7 @@ texttype(Text *t, Rune r)
 	}
 	/* cut/paste must be done after the seq++/filemark */
 	switch(r){
-	case Kcmd+'x':	/* %X: cut */
+	case 0x18:	/* ^X: cut */
 		typecommit(t);
 		if(t->what == Body){
 			seq++;
@@ -806,7 +860,7 @@ texttype(Text *t, Rune r)
 		textshow(t, t->q0, t->q0, 1);
 		t->iq1 = t->q0;
 		return;
-	case Kcmd+'v':	/* %V: paste */
+	case 0x16:	/* ^V: paste */
 		typecommit(t);
 		if(t->what == Body){
 			seq++;
