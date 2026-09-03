@@ -25,6 +25,7 @@ OFILES=\
 	util.$O\
 	wind.$O\
 	xfid.$O\
+	zeroxlock.$O\
 
 HFILES=dat.h\
 	edit.h\
@@ -34,6 +35,10 @@ HFILES=dat.h\
 <$PLAN9/src/mkdirs
 
 edit.$O ecmd.$O elog.$O:	edit.h
+
+zeroxlocktest:V: zeroxlocktest.$O zeroxlock.$O
+	$LD -o $O.zeroxlocktest zeroxlocktest.$O zeroxlock.$O
+	./$O.zeroxlocktest
 
 likeplan9:V:
 	mkdir -p likeplan9

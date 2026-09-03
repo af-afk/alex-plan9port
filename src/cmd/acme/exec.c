@@ -550,7 +550,7 @@ zeroxx(Text *et, Text *t, Text *_1, int _2, int _3, Rune *_4, int _5)
 	USED(_5);
 
 	locked = FALSE;
-	if(t!=nil && t->w!=nil && t->w!=et->w){
+	if(zeroxneedslock(et, t)){
 		locked = TRUE;
 		c = 'M';
 		if(et->w)
