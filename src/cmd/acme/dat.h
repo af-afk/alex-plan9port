@@ -265,6 +265,7 @@ struct Window
 	uint		ctlfid;
 	char		*dumpstr;
 	char		*dumpdir;
+	char		*completeprefix;
 	int		dumpid;
 	int		utflastqid;
 	int		utflastboff;

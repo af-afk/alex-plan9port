@@ -719,6 +719,23 @@ out:
 			fontx(&w->body, nil, nil, FALSE, XXX, r, nr);
 			m += (q+1) - pp;
 		}else
+		if(strncmp(p, "completeprefix ", 15) == 0){ /* root absolute filename completion here */
+			pp = p+15;
+			m = 15;
+			q = memchr(pp, '\n', e-pp);
+			if(q==nil || q==pp){
+				err = Ebadctl;
+				break;
+			}
+			*q = 0;
+			if(*pp != '/'){
+				err = "completion prefix is not rooted";
+				break;
+			}
+			free(w->completeprefix);
+			w->completeprefix = estrdup(pp);
+			m += (q+1) - pp;
+		}else
 		if(strncmp(p, "dump ", 5) == 0){	/* set dump string */
 			pp = p+5;
 			m = 5;

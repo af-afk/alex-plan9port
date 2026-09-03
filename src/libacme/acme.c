@@ -385,8 +385,6 @@ gete(Win *w, CFid *efd, Event *e)
 	e->q1 = geten(w, efd);
 	e->flag = geten(w, efd);
 	e->nr = geten(w, efd);
-	if(e->nr > EVENTSIZE)
-		error(w, "event string too long");
 	e->nb = 0;
 	for(i=0; i<e->nr; i++){
 		/* e->r[i] = */ geter(w, efd, e->text+e->nb, &nb);

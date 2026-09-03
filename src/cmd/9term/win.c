@@ -76,6 +76,7 @@ int	delete(Event*);
 void	deltype(uint, uint);
 void	sendbs(int, int);
 void	runproc(void*);
+int	winexecsendback(int, int, uint, uint, int, uint, uint);
 
 int
 fsfidprint(CFid *fid, char *fmt, ...)
@@ -319,8 +320,6 @@ gete(CFid *efd, Event *e)
 	e->q1 = geten(efd);
 	e->flag = geten(efd);
 	e->nr = geten(efd);
-	if(e->nr > EVENTSIZE)
-		error("event string too long");
 	e->nb = 0;
 	for(i=0; i<e->nr; i++){
 		e->r[i] = geter(efd, e->b+e->nb, &nb);
@@ -430,8 +429,10 @@ stdinproc(void *v)
 					gete(efd, &e3);
 					gete(efd, &e4);
 				}
-				if(e.flag&1 || (e.c2=='x' && e.nr==0 && e2.nr==0)){
-					/* send it straight back */
+				if(winexecsendback(e.flag&1, e.c2=='x', e.q0, e.q1,
+					  e.flag&2, (e.flag&2) ? e2.q0 : 0,
+					  (e.flag&2) ? e2.q1 : 0)){
+					/* Built-ins and genuinely empty tag clicks go back to acme. */
 					fsfidprint(efd, "%c%c%d %d\n", e.c1, e.c2, e.q0, e.q1);
 					break;
 				}

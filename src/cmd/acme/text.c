@@ -642,9 +642,11 @@ textcomplete(Text *t)
 	for(i=0; i<npath; i++)
 		path[i] = textreadc(t, q++);
 	/* is path rooted? if not, we need to make it relative to window path */
-	if(npath>0 && path[0]=='/')
+	if(npath>0 && path[0]=='/'){
 		dir = runestr(path, npath);
-	else{
+		if(t->w != nil && t->w->completeprefix != nil)
+			dirs = smprint("%s%.*S", t->w->completeprefix, npath, path);
+	}else{
 		dir = dirname(t, nil, 0);
 		if(dir.nr + 1 + npath > nelem(tmp)){
 			free(dir.r);
@@ -664,7 +666,8 @@ textcomplete(Text *t)
 	}
 
 	s = smprint("%.*S", nstr, str);
-	dirs = smprint("%.*S", dir.nr, dir.r);
+	if(dirs == nil)
+		dirs = smprint("%.*S", dir.nr, dir.r);
 	c = complete(dirs, s);
 	free(s);
 	if(c == nil){
