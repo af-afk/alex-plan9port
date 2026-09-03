@@ -822,6 +822,10 @@ texttype(Text *t, Rune r)
 	 	typecommit(t);
 		undo(t, nil, nil, FALSE, 0, nil, 0);
 		return;
+	case 0x1a:	/* ^Z: Zerox */
+		typecommit(t);
+		zerox(t);
+		return;
 	case 0x07: /* ^G: get */
 		typecommit(t);
 		get(t, nil, nil, FALSE, 0, nil, 0);

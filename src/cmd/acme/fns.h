@@ -57,6 +57,7 @@ void	cut(Text*, Text*, Text*, int, int, Rune*, int);
 void	paste(Text*, Text*, Text*, int, int, Rune*, int);
 void	get(Text*, Text*, Text*, int, int, Rune*, int);
 void	put(Text*, Text*, Text*, int, int, Rune*, int);
+void	zerox(Text*);
 void	putfile(File*, int, int, Rune*, int);
 void	fontx(Text*, Text*, Text*, int, int, Rune*, int);
 #undef isalnum
