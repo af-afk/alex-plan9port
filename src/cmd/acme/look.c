@@ -531,6 +531,7 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	int i, n, nname, colon, eval;
 	uint amin, amax;
 	Rune *r, c;
+	char *accesspath;
 	Window *w;
 	Runestr rs;
 	Rune Lhttpcss[] = {'h', 't', 't', 'p', ':', '/', '/', 0};
@@ -635,12 +636,19 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	w = lookfile(r, nname);
 	if(w != nil)
 		goto Isfile;
-	/* if it's the name of a file, it's a file */
-	if(ismtpt(e->bname) || access(e->bname, 0) < 0){
+	/*
+	 * If this window maps rooted names through a local filesystem prefix,
+	 * use that path only for the existence check.  Keep e->name and
+	 * e->bname unchanged so an event client sees the remote-shaped name.
+	 */
+	accesspath = lookaccesspath(t->w == nil ? nil : t->w->completeprefix, e->bname);
+	if(ismtpt(accesspath) || access(accesspath, 0) < 0){
+		free(accesspath);
 		free(e->bname);
 		e->bname = nil;
 		goto Isntfile;
 	}
+	free(accesspath);
 
   Isfile:
 	e->name = r;

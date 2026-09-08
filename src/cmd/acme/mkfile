@@ -17,6 +17,7 @@ OFILES=\
 	fsys.$O\
 	logf.$O\
 	look.$O\
+	lookpath.$O\
 	regx.$O\
 	rows.$O\
 	scrl.$O\
@@ -39,6 +40,10 @@ edit.$O ecmd.$O elog.$O:	edit.h
 zeroxlocktest:V: zeroxlocktest.$O zeroxlock.$O
 	$LD -o $O.zeroxlocktest zeroxlocktest.$O zeroxlock.$O
 	./$O.zeroxlocktest
+
+lookpathtest:V: lookpathtest.$O lookpath.$O
+	$LD -o $O.lookpathtest lookpathtest.$O lookpath.$O
+	./$O.lookpathtest
 
 likeplan9:V:
 	mkdir -p likeplan9

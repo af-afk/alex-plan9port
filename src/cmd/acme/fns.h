@@ -71,6 +71,7 @@ void	editcmd(Text*, Rune*, uint);
 uint	min(uint, uint);
 uint	max(uint, uint);
 Window*	lookfile(Rune*, int);
+char*	lookaccesspath(char*, char*);
 Window*	lookid(int, int);
 char*	runetobyte(Rune*, int);
 Rune*	bytetorune(char*, int*);
