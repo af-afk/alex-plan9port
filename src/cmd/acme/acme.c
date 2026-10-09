@@ -11,6 +11,7 @@
 #include <libsec.h>
 #include "dat.h"
 #include "fns.h"
+#include "theme.h"
 	/* for generating syms in mkfile only: */
 	#include <bio.h>
 	#include "edit.h"
@@ -482,6 +483,13 @@ keyboardthread(void *v)
 			break;
 		case KKey:
 		casekeyboard:
+			if(themeiskey(r)){
+				qlock(&row.lk);
+				themeflip(&row);
+				qunlock(&row.lk);
+				flushimage(display, 1);
+				break;
+			}
 			typetext = rowtype(&row, r, mouse->xy);
 			t = typetext;
 			if(t!=nil && t->col!=nil && !(r==Kdown || r==Kleft || r==Kright))	/* scrolling doesn't change activecol */
@@ -545,12 +553,14 @@ mousethread(void *v)
 		flushimage(display, 1);
 		switch(alt(alts)){
 		case MResize:
+			qlock(&row.lk);
 			if(getwindow(display, Refnone) < 0)
 				error("attach to window");
-			draw(screen, screen->r, display->white, nil, ZP);
+			draw(screen, screen->r, rowback, nil, ZP);
 			iconinit();
 			scrlresize();
 			rowresize(&row, screen->clipr);
+			qunlock(&row.lk);
 			break;
 		case MPlumb:
 			if(strcmp(pm->type, "text") == 0){
@@ -1032,27 +1042,119 @@ Cursor2 boxcursor2 = {
 	 0x00, 0x00, 0x00, 0x00}
 };
 
+typedef struct Themeimages Themeimages;
+struct Themeimages {
+	Image *tag[NCOL];
+	Image *text[NCOL];
+	Image *back;
+	Image *bord;
+	Image *button;
+	Image *modbutton;
+	Image *colbutton;
+	Image *but2col;
+	Image *but3col;
+};
+
+static Themeimages themeimages[2];
+static Themeimages *activeimages;
+
+static Image*
+solidcolor(ulong color)
+{
+	return allocimage(display, Rect(0,0,1,1), screen->chan, 1, color);
+}
+
+static void
+paletteinit(Theme *theme)
+{
+	int i;
+	Themeimages *images;
+
+	images = &themeimages[theme != nil];
+	if(images->tag[BACK] == nil){
+		if(theme == nil){
+			/* Original acme day palette. */
+			images->tag[BACK] = allocimagemix(display, DPalebluegreen, DWhite);
+			images->tag[HIGH] = solidcolor(DPalegreygreen);
+			images->tag[BORD] = solidcolor(DPurpleblue);
+			images->tag[TEXT] = display->black;
+			images->tag[HTEXT] = display->black;
+
+			images->text[BACK] = allocimagemix(display, DPaleyellow, DWhite);
+			images->text[HIGH] = solidcolor(DDarkyellow);
+			images->text[BORD] = solidcolor(DYellowgreen);
+			images->text[TEXT] = display->black;
+			images->text[HTEXT] = display->black;
+			images->back = display->white;
+			images->bord = display->black;
+		}else{
+			for(i=0; i<NCOL; i++){
+				images->tag[i] = solidcolor(theme->tag[i]);
+				images->text[i] = solidcolor(theme->body[i]);
+			}
+			images->back = solidcolor(theme->rowback);
+			images->bord = solidcolor(theme->rowbord);
+		}
+	}
+
+	activeimages = images;
+	memmove(tagcols, images->tag, sizeof tagcols);
+	memmove(textcols, images->text, sizeof textcols);
+	rowback = images->back;
+	rowbord = images->bord;
+	button = images->button;
+	modbutton = images->modbutton;
+	colbutton = images->colbutton;
+	but2col = images->but2col;
+	but3col = images->but3col;
+}
+
+static void
+textpalette(Text *t, Image **cols)
+{
+	memmove(t->fr.cols, cols, sizeof t->fr.cols);
+}
+
+static void
+rowpalette(Row *r)
+{
+	int i, j;
+	Column *c;
+	Window *w;
+
+	textpalette(&r->tag, tagcols);
+	for(i=0; i<r->ncol; i++){
+		c = r->col[i];
+		textpalette(&c->tag, tagcols);
+		for(j=0; j<c->nw; j++){
+			w = c->w[j];
+			textpalette(&w->tag, tagcols);
+			textpalette(&w->body, textcols);
+		}
+	}
+}
+
+void
+themeflip(Row *r)
+{
+	paletteinit(themetoggle());
+	rowpalette(r);
+	iconinit();
+	draw(screen, screen->r, rowback, nil, ZP);
+	rowresize(r, screen->clipr);
+}
+
 void
 iconinit(void)
 {
 	Rectangle r;
 	Image *tmp;
+	Theme *theme;
 
-	if(tagcols[BACK] == nil) {
-		/* Blue */
-		tagcols[BACK] = allocimagemix(display, DPalebluegreen, DWhite);
-		tagcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPalegreygreen);
-		tagcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPurpleblue);
-		tagcols[TEXT] = display->black;
-		tagcols[HTEXT] = display->black;
+	if(tagcols[BACK] == nil)
+		paletteinit(themeactive());
 
-		/* Yellow */
-		textcols[BACK] = allocimagemix(display, DPaleyellow, DWhite);
-		textcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkyellow);
-		textcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DYellowgreen);
-		textcols[TEXT] = display->black;
-		textcols[HTEXT] = display->black;
-	}
+	theme = themeactive();
 
 	r = Rect(0, 0, Scrollwid, font->height+1);
 	if(button && eqrect(r, button->r))
@@ -1062,6 +1164,13 @@ iconinit(void)
 		freeimage(button);
 		freeimage(modbutton);
 		freeimage(colbutton);
+		freeimage(but2col);
+		freeimage(but3col);
+		activeimages->button = nil;
+		activeimages->modbutton = nil;
+		activeimages->colbutton = nil;
+		activeimages->but2col = nil;
+		activeimages->but3col = nil;
 	}
 
 	button = allocimage(display, r, screen->chan, 0, DNofill);
@@ -1073,15 +1182,21 @@ iconinit(void)
 	draw(modbutton, r, tagcols[BACK], nil, r.min);
 	border(modbutton, r, ButtonBorder, tagcols[BORD], ZP);
 	r = insetrect(r, ButtonBorder);
-	tmp = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DMedblue);
+	tmp = solidcolor(theme == nil ? DMedblue : theme->modbutton);
 	draw(modbutton, r, tmp, nil, ZP);
 	freeimage(tmp);
 
 	r = button->r;
-	colbutton = allocimage(display, r, screen->chan, 0, DPurpleblue);
+	colbutton = allocimage(display, r, screen->chan, 0,
+		theme == nil ? DPurpleblue : theme->colbutton);
 
 	but2col = allocimage(display, r, screen->chan, 1, 0xAA0000FF);
 	but3col = allocimage(display, r, screen->chan, 1, 0x006600FF);
+	activeimages->button = button;
+	activeimages->modbutton = modbutton;
+	activeimages->colbutton = colbutton;
+	activeimages->but2col = but2col;
+	activeimages->but3col = but3col;
 }
 
 /*

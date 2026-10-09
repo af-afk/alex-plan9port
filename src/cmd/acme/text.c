@@ -16,6 +16,7 @@
 Image	*tagcols[NCOL];
 Image	*textcols[NCOL];
 static Rune Ldot[] = { '.', 0 };
+static Rune Lclearpane[] = { ',', 'd', 0 };
 
 enum{
 	TABDIR = 3	/* width of tabs in directory windows */
@@ -829,7 +830,25 @@ texttype(Text *t, Rune r)
 		typecommit(t);
 		zerox(t);
 		return;
-	case 0x07: /* ^G: get */
+	case 0x0d:	/* ^M: clear pane, as Edit ,d */
+		typecommit(t);
+		if(t->w != nil){
+			seq++;
+			editcmd(&t->w->body, Lclearpane, 2);
+		}
+		return;
+	case 0x14:	/* ^T: select innermost enclosing (), [], or {} */
+		typecommit(t);
+		n = t->file->b.nc;
+		if(n == 0)
+			return;
+		rp = runemalloc(n);
+		bufread(&t->file->b, 0, rp, n);
+		if(blockselect(rp, n, t->q0, t->q1, &q0, &q1))
+			textshow(t, q0, q1, TRUE);
+		free(rp);
+		return;
+	case 0x07:	/* ^G: get */
 		typecommit(t);
 		get(t, nil, nil, FALSE, 0, nil, 0);
 		return;

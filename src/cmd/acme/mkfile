@@ -6,6 +6,7 @@ DIRS=mail
 OFILES=\
 	acme.$O\
 	addr.$O\
+	blockselect.$O\
 	buff.$O\
 	cols.$O\
 	disk.$O\
@@ -22,6 +23,7 @@ OFILES=\
 	rows.$O\
 	scrl.$O\
 	text.$O\
+	theme.$O\
 	time.$O\
 	util.$O\
 	wind.$O\
@@ -31,6 +33,7 @@ OFILES=\
 HFILES=dat.h\
 	edit.h\
 	fns.h\
+	theme.h\
 
 <$PLAN9/src/mkone
 <$PLAN9/src/mkdirs
@@ -44,6 +47,14 @@ zeroxlocktest:V: zeroxlocktest.$O zeroxlock.$O
 lookpathtest:V: lookpathtest.$O lookpath.$O
 	$LD -o $O.lookpathtest lookpathtest.$O lookpath.$O
 	./$O.lookpathtest
+
+blockselecttest:V: blockselecttest.$O blockselect.$O
+	$LD -o $O.blockselecttest blockselecttest.$O blockselect.$O
+	./$O.blockselecttest
+
+themetest:V: themetest.$O theme.$O
+	$LD -o $O.themetest themetest.$O theme.$O
+	./$O.themetest
 
 likeplan9:V:
 	mkdir -p likeplan9

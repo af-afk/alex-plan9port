@@ -77,6 +77,7 @@ void	deltype(uint, uint);
 void	sendbs(int, int);
 void	runproc(void*);
 int	winexecsendback(int, int, uint, uint, int, uint, uint);
+int	winrunebyteoffset(char*, int, uint);
 
 int
 fsfidprint(CFid *fid, char *fmt, ...)
@@ -320,6 +321,8 @@ gete(CFid *efd, Event *e)
 	e->q1 = geten(efd);
 	e->flag = geten(efd);
 	e->nr = geten(efd);
+	if(e->nr > EVENTSIZE)
+		error("event string too long");
 	e->nb = 0;
 	for(i=0; i<e->nr; i++){
 		e->r[i] = geter(efd, e->b+e->nb, &nb);
@@ -694,9 +697,8 @@ delete(Event *e)
 void
 addtype(int c, uint p0, char *b, int nb, int nr)
 {
-	int i, w;
+	int i, n, w;
 	Rune r;
-	uint p;
 	char *b0;
 
 	for(i=0; i<nb; i+=w){
@@ -720,13 +722,10 @@ addtype(int c, uint p0, char *b, int nb, int nr)
 	if(p0 == ntyper)
 		memmove(typing+ntypeb, b, nb);
 	else{
-		b0 = typing;
-		for(p=0; p<p0 && b0<typing+ntypeb; p++){
-			w = chartorune(&r, b0+i);
-			b0 += w;
-		}
-		if(p != p0)
+		n = winrunebyteoffset(typing, ntypeb, p0);
+		if(n < 0)
 			error("typing: findrune");
+		b0 = typing+n;
 		memmove(b0+nb, b0, (typing+ntypeb)-b0);
 		memmove(b0, b, nb);
 	}

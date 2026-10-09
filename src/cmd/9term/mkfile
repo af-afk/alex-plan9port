@@ -5,6 +5,7 @@ TARG=9term win
 OFILES=\
 	rcstart.$O\
 	execpolicy.$O\
+	typebuf.$O\
 	$SYSNAME.$O\
 
 HFILES=dat.h fns.h term.h
