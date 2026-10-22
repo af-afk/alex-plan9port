@@ -37,5 +37,15 @@ main(void)
 	check("cursor after opening", "x()y", 2, 2, 1, 2, 2);
 	check("cursor outside", "x(a)y", 5, 5, 0, 0, 0);
 	check("unclosed block", "x(a", 3, 3, 0, 0, 0);
+	check("quasiquotes", "x`a + b`y", 4, 4, 1, 2, 7);
+	check("double quotes", "x\"a + b\"y", 4, 4, 1, 2, 7);
+	check("single quotes", "x'a + b'y", 4, 4, 1, 2, 7);
+	check("escaped double quote", "x\"a\\\"b\"y", 5, 5, 1, 2, 6);
+	check("escaped single quote", "x'a\\'b'y", 5, 5, 1, 2, 6);
+	check("escaped quasiquote", "x`a\\`b`y", 5, 5, 1, 2, 6);
+	check("single quote after apostrophe", "don't 'quote'", 9, 9, 1, 7, 12);
+	check("quote expands to parent block", "f(\"x\")", 3, 4, 1, 2, 5);
+	check("cursor outside quotes", "x\"a\"y", 5, 5, 0, 0, 0);
+	check("unclosed quote", "x\"a", 3, 3, 0, 0, 0);
 	exits(nil);
 }

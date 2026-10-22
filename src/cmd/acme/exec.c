@@ -574,12 +574,6 @@ zeroxx(Text *et, Text *t, Text *_1, int _2, int _3, Rune *_4, int _5)
 		winunlock(t->w);
 }
 
-void
-zerox(Text *t)
-{
-	zeroxx(t, seltext, nil, FALSE, 0, nil, 0);
-}
-
 typedef struct TextAddr TextAddr;
 struct TextAddr {
 	long lorigin; // line+rune for origin

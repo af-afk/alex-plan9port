@@ -314,6 +314,25 @@ xloop(void)
 
 static int kcodecontrol, kcodealt, kcodeshift;
 
+static int
+keyhasmodifier(XKeyEvent *ke, int modifier)
+{
+	XModifierKeymap *map;
+	int i, found;
+
+	map = XGetModifierMapping(ke->display);
+	if(map == nil)
+		return 0;
+	found = 0;
+	for(i=0; i<map->max_keypermod; i++)
+		if(map->modifiermap[modifier*map->max_keypermod+i] == ke->keycode){
+			found = 1;
+			break;
+		}
+	XFreeModifiermap(map);
+	return found;
+}
+
 /*
  * Handle an incoming X event.
  */
@@ -437,9 +456,15 @@ runxevent(XEvent *xev)
 			switch(k) {
 			case XK_Control_L:
 			case XK_Control_R:
+			control:
 				kcodecontrol = ke->keycode;
 				c |= ControlMask;
 				modp = 1;
+				break;
+			case XK_Caps_Lock:
+				/* caps:ctrl_modifier keeps the Caps_Lock keysym. */
+				if(keyhasmodifier(ke, ControlMapIndex))
+					goto control;
 				break;
 			case XK_Alt_L:
 			case XK_Alt_R:

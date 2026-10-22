@@ -826,10 +826,6 @@ texttype(Text *t, Rune r)
 	 	typecommit(t);
 		undo(t, nil, nil, FALSE, 0, nil, 0);
 		return;
-	case 0x1a:	/* ^Z: Zerox */
-		typecommit(t);
-		zerox(t);
-		return;
 	case 0x0d:	/* ^M: clear pane, as Edit ,d */
 		typecommit(t);
 		if(t->w != nil){
