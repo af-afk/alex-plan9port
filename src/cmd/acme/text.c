@@ -715,6 +715,19 @@ texttype(Text *t, Rune r)
 	nr = 1;
 	rp = &r;
 	switch(r){
+	case 0:		/* ^Space: select the surrounding indentation level */
+		if(t->what != Body)
+			return;
+		typecommit(t);
+		n = t->file->b.nc;
+		if(n == 0)
+			return;
+		rp = runemalloc(n);
+		bufread(&t->file->b, 0, rp, n);
+		if(indentselect(rp, n, t->q0, t->tabstop, &q0, &q1))
+			textshow(t, q0, q1, TRUE);
+		free(rp);
+		return;
 	case Kleft:
 		typecommit(t);
 		if(t->q0 > 0)

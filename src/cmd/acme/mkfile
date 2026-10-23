@@ -7,6 +7,7 @@ OFILES=\
 	acme.$O\
 	addr.$O\
 	blockselect.$O\
+	indentselect.$O\
 	buff.$O\
 	cols.$O\
 	disk.$O\
@@ -51,6 +52,10 @@ lookpathtest:V: lookpathtest.$O lookpath.$O
 blockselecttest:V: blockselecttest.$O blockselect.$O
 	$LD -o $O.blockselecttest blockselecttest.$O blockselect.$O
 	./$O.blockselecttest
+
+indentselecttest:V: indentselecttest.$O indentselect.$O
+	$LD -o $O.indentselecttest indentselecttest.$O indentselect.$O
+	./$O.indentselecttest
 
 themetest:V: themetest.$O theme.$O
 	$LD -o $O.themetest themetest.$O theme.$O

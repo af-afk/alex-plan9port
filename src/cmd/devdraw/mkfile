@@ -31,6 +31,10 @@ $O.drawclient: drawclient.$O
 $O.mklatinkbd: mklatinkbd.$O
 	$LD -o $target $prereq
 
+x11controltest:V: x11controltest.$O x11-control.$O
+	$LD -o $O.x11controltest x11controltest.$O x11-control.$O
+	./$O.x11controltest
+
 latin1.$O: latin1.h
 
 latin1.h: $PLAN9/lib/keyboard $O.mklatinkbd
@@ -42,7 +46,7 @@ $O.macargv: $MACARGV
 %.$O: %.m
 	$CC $CFLAGS $OBJCFLAGS -fobjc-arc -o $target $stem.m
 
-CLEANFILES=$O.devdraw $O.macargv $O.drawclient $O.mklatinkbd latin1.h
+CLEANFILES=$O.devdraw $O.macargv $O.drawclient $O.mklatinkbd $O.x11controltest latin1.h
 
 install: mklatinkbd.install
 install:Q:

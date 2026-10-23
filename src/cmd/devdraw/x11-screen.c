@@ -1290,12 +1290,12 @@ _xtoplan9kbd(XEvent *e)
 	/* Compensate for servers that call a minus a hyphen */
 	if(k == XK_hyphen)
 		k = XK_minus;
-	/* Do control mapping ourselves if translator doesn't */
-	if(e->xkey.state&ControlMask)
-		k &= 0x9f;
-	if(k == NoSymbol) {
-		return -1;
-	}
+	/*
+	 * Do control mapping ourselves if translator doesn't.
+	 * NoSymbol was rejected above, before this mapping.  Do not test for
+	 * it again: control-space and control-@ both legitimately map to NUL.
+	 */
+	k = x11controlkey(k, e->xkey.state&ControlMask);
 
 	return k+0;
 }

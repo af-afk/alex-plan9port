@@ -32,3 +32,5 @@
 #undef Screen
 #undef Visual
 #undef Window
+
+int x11controlkey(int, int);

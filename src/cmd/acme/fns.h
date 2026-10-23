@@ -48,6 +48,7 @@ void	killprocs(void);
 void	killtasks(void);
 int	runeeq(Rune*, uint, Rune*, uint);
 int	blockselect(Rune*, uint, uint, uint, uint*, uint*);
+int	indentselect(Rune*, uint, uint, uint, uint*, uint*);
 int	ALEF_tid(void);
 void	iconinit(void);
 void	themeflip(Row*);
