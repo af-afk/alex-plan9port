@@ -642,6 +642,20 @@ textcomplete(Text *t)
 	q = t->q0-nstr-npath;
 	for(i=0; i<npath; i++)
 		path[i] = textreadc(t, q++);
+
+	/* Expand environment variables for lookup, but leave the typed text alone. */
+	s = smprint("%.*S", npath, path);
+	dirs = expandenvpath(s);
+	free(s);
+	if(dirs == nil){
+		warning(nil, "path too long for completion\n");
+		goto Return;
+	}
+	free(path);
+	path = bytetorune(dirs, &npath);
+	free(dirs);
+	dirs = nil;
+
 	/* is path rooted? if not, we need to make it relative to window path */
 	if(npath>0 && path[0]=='/'){
 		dir = runestr(path, npath);
@@ -649,13 +663,13 @@ textcomplete(Text *t)
 			dirs = smprint("%s%.*S", t->w->completeprefix, npath, path);
 	}else{
 		dir = dirname(t, nil, 0);
-		if(dir.nr + 1 + npath > nelem(tmp)){
-			free(dir.r);
-			goto Return;
-		}
 		if(dir.nr == 0){
 			dir.nr = 1;
 			dir.r = runestrdup(Ldot);
+		}
+		if(npath >= nelem(tmp) || dir.nr > nelem(tmp)-1-npath){
+			free(dir.r);
+			goto Return;
 		}
 		runemove(tmp, dir.r, dir.nr);
 		tmp[dir.nr] = '/';

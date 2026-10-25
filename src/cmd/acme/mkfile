@@ -14,6 +14,7 @@ OFILES=\
 	ecmd.$O\
 	edit.$O\
 	elog.$O\
+	envexpand.$O\
 	exec.$O\
 	file.$O\
 	fsys.$O\
@@ -48,6 +49,10 @@ zeroxlocktest:V: zeroxlocktest.$O zeroxlock.$O
 lookpathtest:V: lookpathtest.$O lookpath.$O
 	$LD -o $O.lookpathtest lookpathtest.$O lookpath.$O
 	./$O.lookpathtest
+
+envexpandtest:V: envexpandtest.$O envexpand.$O
+	$LD -o $O.envexpandtest envexpandtest.$O envexpand.$O
+	./$O.envexpandtest
 
 blockselecttest:V: blockselecttest.$O blockselect.$O
 	$LD -o $O.blockselecttest blockselecttest.$O blockselect.$O
